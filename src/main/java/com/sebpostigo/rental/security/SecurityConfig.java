@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -22,6 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -31,7 +34,8 @@ public class SecurityConfig {
 			"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html" };
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http, AppProperties props, RateLimiter rateLimiter)
+			throws Exception {
 		ProblemAuthenticationEntryPoint entryPoint = new ProblemAuthenticationEntryPoint();
 		http
 			// Stateless API: no session to ride, and login/logout are guarded by an Origin check instead.
@@ -42,8 +46,16 @@ public class SecurityConfig {
 			.oauth2ResourceServer(oauth -> oauth.bearerTokenResolver(new CookieBearerTokenResolver())
 				.authenticationEntryPoint(entryPoint)
 				.jwt(Customizer.withDefaults()))
-			.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint));
+			.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint))
+			// Before CorsFilter so a foreign Origin gets our ProblemDetail, not CORS's plain-text rejection.
+			.addFilterBefore(new OriginCheckFilter(props.corsOrigins()), CorsFilter.class)
+			.addFilterAfter(new RateLimitFilter(rateLimiter), OriginCheckFilter.class);
 		return http.build();
+	}
+
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 
 	@Bean
