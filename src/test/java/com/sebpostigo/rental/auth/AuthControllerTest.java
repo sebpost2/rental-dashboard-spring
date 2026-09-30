@@ -42,6 +42,32 @@ class AuthControllerTest extends IntegrationTest {
 	}
 
 	@Test
+	void registerWithPasswordOverBcryptByteLimitRejected() throws Exception {
+		// 40 chars pass @Size(max = 72) but are 80 bytes in UTF-8, past bcrypt's 72-byte limit.
+		mvc.perform(post("/auth/register").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"email\":\"ana@example.com\",\"password\":\"%s\"}".formatted("ñ".repeat(40))))
+			.andExpect(status().is(422))
+			.andExpect(jsonPath("$.detail").value(containsString("password")));
+	}
+
+	@Test
+	void loginWithPasswordOverBcryptByteLimitRejected() throws Exception {
+		register("ana@example.com");
+
+		login("ana@example.com", "ñ".repeat(40)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void registerWithEmailOverColumnLengthRejected() throws Exception {
+		// A well-formed address longer than the 320-char users.email column.
+		String email = "a".repeat(64) + "@" + String.join(".", java.util.Collections.nCopies(5, "b".repeat(60))) + ".com";
+		mvc.perform(post("/auth/register").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, PASSWORD)))
+			.andExpect(status().is(422))
+			.andExpect(jsonPath("$.detail").value(containsString("email")));
+	}
+
+	@Test
 	void loginWithCorrectCredentialsReturnsToken() throws Exception {
 		register("ana@example.com");
 
