@@ -3,6 +3,7 @@ package com.sebpostigo.rental;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.sebpostigo.rental.security.RateLimiter;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,17 @@ public abstract class IntegrationTest {
 	protected Cookie signUp(String email) throws Exception {
 		register(email).andExpect(status().isCreated());
 		return login(email, PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getCookie("access_token");
+	}
+
+	protected long createProperty(Cookie owner, String name) throws Exception {
+		String body = mvc.perform(post("/properties").cookie(owner)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content("{\"name\":\"%s\",\"address\":\"Av. Test 123\"}".formatted(name)))
+			.andExpect(status().isCreated())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+		return ((Number) JsonPath.read(body, "$.id")).longValue();
 	}
 
 }
