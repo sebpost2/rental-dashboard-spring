@@ -13,5 +13,5 @@ WORKDIR /app
 COPY --from=build /src/target/rental-dashboard-spring-0.0.1-SNAPSHOT.jar app.jar
 USER app
 EXPOSE 8080
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=65"
 ENTRYPOINT ["java", "-jar", "app.jar"]
