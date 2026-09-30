@@ -188,4 +188,30 @@ class AuthControllerTest extends IntegrationTest {
 			.andExpect(header().string("Access-Control-Allow-Credentials", "true"));
 	}
 
+	@Test
+	void rateLimitedLoginIsReadableByTheFrontend() throws Exception {
+		for (int i = 0; i < 10; i++) {
+			login("ghost@example.com", "wrong");
+		}
+
+		mvc.perform(post("/auth/login").header("Origin", "http://localhost:3000")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+			.param("username", "ghost@example.com")
+			.param("password", "wrong"))
+			.andExpect(status().isTooManyRequests())
+			.andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"));
+	}
+
+	/** Swagger UI is served by the API itself, so its requests carry the API's own Origin. */
+	@Test
+	void loginFromTheApisOwnOriginAllowed() throws Exception {
+		register("ana@example.com");
+
+		mvc.perform(post("/auth/login").header("Origin", "http://localhost")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+			.param("username", "ana@example.com")
+			.param("password", PASSWORD))
+			.andExpect(status().isOk());
+	}
+
 }

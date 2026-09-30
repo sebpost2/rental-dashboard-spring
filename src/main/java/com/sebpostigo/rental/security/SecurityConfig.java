@@ -49,7 +49,8 @@ public class SecurityConfig {
 			.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint))
 			// Before CorsFilter so a foreign Origin gets our ProblemDetail, not CORS's plain-text rejection.
 			.addFilterBefore(new OriginCheckFilter(props.corsOrigins()), CorsFilter.class)
-			.addFilterAfter(new RateLimitFilter(rateLimiter), OriginCheckFilter.class);
+			// After CorsFilter so a 429 still carries the CORS headers the frontend needs to read it.
+			.addFilterAfter(new RateLimitFilter(rateLimiter), CorsFilter.class);
 		return http.build();
 	}
 

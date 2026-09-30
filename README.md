@@ -51,7 +51,7 @@ Demo login: `demo@rentalledger.com` / `demopass123`.
 
 ## Tests
 
-59 tests: MockMvc integration tests against a real Postgres 17 in Testcontainers (auth, properties, ledger, reports, schema, demo seeder) plus JWT unit tests. CI runs `./mvnw verify` on every push.
+62 tests: MockMvc integration tests against a real Postgres 17 in Testcontainers (auth, properties, ledger, reports, schema, demo seeder) plus JWT unit tests. CI runs `./mvnw verify` on every push.
 
 ## Ported from FastAPI
 

@@ -9,12 +9,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * CSRF guard for login/logout: browsers can send these form POSTs cross-site without a CORS
- * preflight, so a present Origin header must be one of ours. Requests without Origin (curl,
- * server-to-server) are allowed, as in the FastAPI version.
+ * preflight, so a cross-origin Origin header must be one of ours. Same-origin requests (Swagger UI
+ * served by this API) and requests without Origin (curl, server-to-server) are allowed, as in the
+ * FastAPI version.
  */
 class OriginCheckFilter extends OncePerRequestFilter {
 
@@ -35,7 +37,7 @@ class OriginCheckFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
 		String origin = request.getHeader("Origin");
-		if (origin != null && !allowedOrigins.contains(origin)) {
+		if (CorsUtils.isCorsRequest(request) && !allowedOrigins.contains(origin)) {
 			ProblemResponses.write(response, HttpStatus.FORBIDDEN, "Invalid origin");
 			return;
 		}
