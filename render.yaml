@@ -21,3 +21,8 @@ services:
         value: production
       - key: SPRING_PROFILES_ACTIVE
         value: demo
+      # Render sits behind Cloudflare and appends to a client-supplied X-Forwarded-For, so its
+      # rightmost public hop is a Cloudflare edge, not the client. Cloudflare overwrites
+      # CF-Connecting-IP with the real client IP, which makes it the one safe rate-limit key here.
+      - key: SERVER_TOMCAT_REMOTEIP_REMOTE_IP_HEADER
+        value: CF-Connecting-IP
