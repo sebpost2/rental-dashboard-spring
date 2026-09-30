@@ -66,4 +66,20 @@ public abstract class IntegrationTest {
 		return ((Number) JsonPath.read(body, "$.id")).longValue();
 	}
 
+	protected void addIncome(Cookie owner, long propertyId, String date, String amount, String source)
+			throws Exception {
+		mvc.perform(post("/properties/{id}/incomes", propertyId).cookie(owner)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content("{\"date\":\"%s\",\"amount\":%s,\"source\":\"%s\"}".formatted(date, amount, source)))
+			.andExpect(status().isCreated());
+	}
+
+	protected void addExpense(Cookie owner, long propertyId, String date, String amount, String category)
+			throws Exception {
+		mvc.perform(post("/properties/{id}/expenses", propertyId).cookie(owner)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content("{\"date\":\"%s\",\"amount\":%s,\"category\":\"%s\"}".formatted(date, amount, category)))
+			.andExpect(status().isCreated());
+	}
+
 }
