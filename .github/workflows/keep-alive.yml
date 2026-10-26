@@ -2,6 +2,7 @@ name: keep-alive
 
 # Render's free tier sleeps after 15 idle minutes. Pinging only on weekdays 12:00–24:00 UTC
 # (~260 h/month) leaves room in the shared 750 free hours for the FastAPI backend.
+# A cold start can take over 90 s, so the timeout is generous.
 on:
   schedule:
     - cron: "*/10 12-23 * * 1-5"
@@ -11,4 +12,4 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -fsS --max-time 90 https://rental-dashboard-spring.onrender.com/health
+      - run: curl -fsS --retry 2 --max-time 180 https://rental-dashboard-spring.onrender.com/health
