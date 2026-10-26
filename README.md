@@ -55,4 +55,6 @@ Demo login: `demo@rentalledger.com` / `demopass123`.
 
 ## Ported from FastAPI
 
+The original is public at [sebpost2/rental-dashboard](https://github.com/sebpost2/rental-dashboard): the FastAPI backend (41 pytest tests) and the Next.js frontend both versions share.
+
 Same routes, status codes, snake_case JSON and error `detail` strings. Two bugs in the original were fixed along the way: deleting a property with ledger entries now cascades (the original had no `ON DELETE CASCADE`), and the demo data uses expense categories the API actually accepts.
